@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Docker
+.dockerignore
+
+# Jenkins
+jenkins_home/
+jenkins_data/
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+
+# Credentials / Secrets
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
