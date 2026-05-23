@@ -19,8 +19,10 @@ pipeline {
                 echo "Running unit tests..."
                 sh '''
                     cd flask_app
-                    pip install -r requirements.txt --quiet
-                    python -m pytest test_app.py -v
+                    python3 -m venv venv
+            	    venv/bin/pip install -r requirements.txt --quiet
+            	    venv/bin/python -m pytest test_app.py -v
+		    
                 '''
             }
         }
