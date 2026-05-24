@@ -25,7 +25,7 @@ services:
       - JENKINS_AGENT_WORKDIR=/home/jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ~/.kube/config:/home/jenkins/.kube/config:ro
+      - /home/ubuntu/.kube/config:/home/jenkins/.kube/config:ro
     depends_on:
       - jenkins
 
