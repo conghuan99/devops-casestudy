@@ -20,8 +20,8 @@ pipeline {
                 sh '''
                     cd flask_app
                     python3 -m venv venv
-            	    venv/bin/pip install -r requirements.txt --quiet
-            	    venv/bin/python -m pytest test_app.py -v
+                    venv/bin/pip install -r requirements.txt --quiet
+                    venv/bin/python -m pytest test_app.py -v
 		    
                 '''
             }
@@ -54,16 +54,16 @@ pipeline {
             }
         }
 
-        // stage('Deploy') {
-        //     steps {
-        //         echo "Deploying to k3s cluster..."
-        //         sh '''
-        //             kubectl apply -f k8s/deployment.yaml
-        //             kubectl apply -f k8s/service.yaml
-        //             kubectl rollout status deployment/flask-app --timeout=60s
-        //         '''
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                echo "Deploying to k3s cluster..."
+                sh '''
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl rollout status deployment/flask-app --timeout=60s
+                '''
+            }
+        }
 
     }
 
