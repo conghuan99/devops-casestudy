@@ -59,7 +59,7 @@ pipeline {
                 echo "Deploying to k3s cluster..."
                 sh '''
                     kubectl set image deployment/flask-app-deployment flask-app=${DOCKER_IMAGE}:${DOCKER_TAG}
-                    kubectl apply -f k8s/deployment.yaml
+                    # kubectl apply -f k8s/deployment.yaml
                     kubectl apply -f k8s/service.yaml
                     kubectl rollout status deployment/flask-app-deployment --timeout=60s
                 '''
