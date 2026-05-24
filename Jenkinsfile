@@ -60,7 +60,7 @@ pipeline {
                 sh '''
                     kubectl apply -f k8s/deployment.yaml
                     kubectl apply -f k8s/service.yaml
-                    kubectl rollout status deployment/flask-app --timeout=60s
+                    kubectl rollout status deployment/flask-app-deployment --timeout=60s
                 '''
             }
         }
