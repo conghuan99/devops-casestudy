@@ -6,6 +6,11 @@ pipeline {
         DOCKER_TAG   = "v${BUILD_NUMBER}"
     }
 
+    options {
+        timeout(time: 5, unit: 'MINUTES')
+    
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -58,13 +63,13 @@ pipeline {
             steps {
                 echo "Deploying to k3s cluster..."
                 sh '''
-                    # kubectl set image deployment/flask-app-deployment flask-app=${DOCKER_IMAGE}:${DOCKER_TAG}
-                    # kubectl annotate deployment/flask-app-deployment kubernetes.io/change-cause="${DOCKER_IMAGE}:${DOCKER_TAG}" --overwrite
-
-                    kubectl set image deployment/flask-app-deployment flask-app=${DOCKER_IMAGE}:${v7}
-                    kubectl annotate deployment/flask-app-deployment kubernetes.io/change-cause="${DOCKER_IMAGE}:${v7}" --overwrite
-
 		    # kubectl apply -f k8s/deployment.yaml
+                    kubectl set image deployment/flask-app-deployment flask-app=${DOCKER_IMAGE}:${DOCKER_TAG}
+                    kubectl annotate deployment/flask-app-deployment kubernetes.io/change-cause="${DOCKER_IMAGE}:${DOCKER_TAG}" --overwrite
+		    
+		    # test rollback
+                    # kubectl set image deployment/flask-app-deployment flask-app=${DOCKER_IMAGE}:${v7}
+                    # kubectl annotate deployment/flask-app-deployment kubernetes.io/change-cause="${DOCKER_IMAGE}:${v7}" --overwrite
                     kubectl apply -f k8s/service.yaml
 
                     # rollback neu set image thành công nhưng rollout fail
@@ -80,11 +85,15 @@ pipeline {
     }
 
     post {
+        always {
+            sh 'docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true'
+        }
         success {
             echo "Pipeline completed successfully!"
         }
         failure {
-            echo "Pipeline failed. Check logs above."
+            echo "Pipeline failed. Check logs above"
+            // send notification
         }
     }
 }
