@@ -62,7 +62,13 @@ pipeline {
                     kubectl annotate deployment/flask-app-deployment kubernetes.io/change-cause="${DOCKER_IMAGE}:${DOCKER_TAG}" --overwrite
                     # kubectl apply -f k8s/deployment.yaml
                     kubectl apply -f k8s/service.yaml
-                    kubectl rollout status deployment/flask-app-deployment --timeout=60s
+
+                    # rollback neu set image thành công nhưng rollout fail
+                    if ! kubectl rollout status deployment/flask-app-deployment --timeout=60s; then
+                      echo "Rollout failed! Rolling back..."
+                      kubectl rollout undo deployment/flask-app-deployment
+                      exit 1
+                    fi
                 '''
             }
         }
