@@ -23,5 +23,9 @@ def health():
 # def health01():
     # return jsonify({"status": "healthy 08"})
 
+@app.route('/error')
+def error():
+    return jsonify({"error": "Internal Server Error"}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

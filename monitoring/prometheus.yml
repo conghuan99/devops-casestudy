@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s      # scrape mỗi 15 giây
+  evaluation_interval: 15s  # evaluate alert rules mỗi 15 giây
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']  # tự scrape chính nó
+
+  - job_name: 'flask-app'
+    static_configs:
+      - targets: ['172.31.26.141:30080']
+    metrics_path: '/metrics'
