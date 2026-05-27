@@ -1,0 +1,160 @@
+{
+  "title": "Jenkins Pipeline Monitoring",
+  "uid": "jenkins-dashboard",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Last Build Result (1=Success, 0=Fail)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "default_jenkins_builds_last_build_result{jenkins_job=\"flask_app_pipeline/main\"}",
+          "legendFormat": "{{jenkins_job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "FAILED", "color": "red" }, "1": { "text": "SUCCESS", "color": "green" } } }
+          ],
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": { "colorMode": "background", "textMode": "value" }
+    },
+    {
+      "id": 2,
+      "title": "Last Build Duration (ms)",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "default_jenkins_builds_last_build_duration_milliseconds{jenkins_job=\"flask_app_pipeline/main\"}",
+          "legendFormat": "Duration"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms" }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Executor Queue Length",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "default_jenkins_executors_queue_length",
+          "legendFormat": "Queue"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Job Count",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "jenkins_job_count_value",
+          "legendFormat": "Jobs"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Build Duration History (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "default_jenkins_builds_duration_milliseconds_summary{jenkins_job=\"flask_app_pipeline/main\"}",
+          "legendFormat": "{{quantile}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Executor Available vs Used",
+      "type": "bargauge",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "sum(default_jenkins_executors_available)",
+          "legendFormat": "Available"
+        },
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "sum(default_jenkins_executors_busy)",
+          "legendFormat": "Busy"
+        },
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "sum(default_jenkins_executors_idle)",
+          "legendFormat": "Idle"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 2 },
+              { "color": "red", "value": 4 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Last Build Waiting in Queue (ms)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "datasource": { "uid": "prometheus" },
+          "expr": "default_jenkins_builds_last_build_waiting_milliseconds{jenkins_job=\"flask_app_pipeline/main\"}",
+          "legendFormat": "Wait Time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms" }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
+}
