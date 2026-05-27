@@ -1,0 +1,162 @@
+---
+# =============================================================
+# Playbook: Setup DevOps Environment for Con Cung Case Study
+# Author: Vo Cong Huan
+# Description: Provision Ubuntu 22.04 server with Docker,
+#              k3s, and required DevOps tooling
+# =============================================================
+
+- name: Setup DevOps Environment
+  hosts: devops_server
+  become: true
+  vars:
+    docker_compose_version: "1.29.2"
+    k3s_version: "v1.28.5+k3s1"
+    kubectl_version: "v1.28.5"
+
+  tasks:
+
+    # ── System Prerequisites ──────────────────────────────────
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install system dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git
+          - python3
+          - python3-pip
+          - unzip
+        state: present
+
+    # ── Docker ───────────────────────────────────────────────
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        state: present
+
+    - name: Install Docker CE
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    # ── Docker Compose ────────────────────────────────────────
+    - name: Install Docker Compose {{ docker_compose_version }}
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    # ── k3s ──────────────────────────────────────────────────
+    - name: Check if k3s is already installed
+      stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Install k3s (lightweight Kubernetes)
+      shell: |
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} sh -
+      when: not k3s_binary.stat.exists
+
+    - name: Wait for k3s to be ready
+      wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
+        state: present
+        timeout: 60
+      when: not k3s_binary.stat.exists
+
+    - name: Copy k3s kubeconfig for ubuntu user
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/ubuntu/.kube/config
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+        remote_src: yes
+
+    - name: Ensure .kube directory exists
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    # ── kubectl ───────────────────────────────────────────────
+    - name: Check if kubectl is installed
+      stat:
+        path: /usr/local/bin/kubectl
+      register: kubectl_binary
+
+    - name: Install kubectl {{ kubectl_version }}
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+      when: not kubectl_binary.stat.exists
+
+    # # ── Firewall / Ports ──────────────────────────────────────
+    # - name: Allow required ports (UFW)
+      # ufw:
+        # rule: allow
+        # port: "{{ item }}"
+        # proto: tcp
+      # loop:
+        # - "8080"   # Jenkins
+        # - "3000"   # Grafana
+        # - "9090"   # Prometheus
+        # - "3100"   # Loki
+        # - "9100"   # Node Exporter
+        # - "30080"  # Flask NodePort
+        # - "6443"   # k3s API
+
+    # ── Verify ────────────────────────────────────────────────
+    - name: Verify Docker version
+      command: docker --version
+      register: docker_ver
+      changed_when: false
+
+    - name: Verify Docker Compose version
+      command: docker-compose --version
+      register: compose_ver
+      changed_when: false
+
+    - name: Verify k3s status
+      command: k3s kubectl get nodes
+      register: k3s_nodes
+      changed_when: false
+
+    - name: Print verification results
+      debug:
+        msg:
+          - "{{ docker_ver.stdout }}"
+          - "{{ compose_ver.stdout }}"
+          - "{{ k3s_nodes.stdout }}"
